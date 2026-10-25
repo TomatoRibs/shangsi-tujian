@@ -1,0 +1,1123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>上司图鉴 · 十题出一份鉴定报告</title>
+<style>
+  :root{
+    --paper:#FCFAF6;
+    --paper-2:#F2EEE5;
+    --ink:#26241F;
+    --ink-2:#5B554A;
+    --ink-3:#8D8676;
+    --rule:#E6E0D3;
+    --accent:#BE3A2B;
+    --safe:#2F7A57;
+    --warn:#C98A1E;
+    --serif:"Noto Serif SC","Songti SC",Georgia,serif;
+    --sans:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-height:100dvh;
+    overflow:hidden;
+    background:
+      radial-gradient(900px 520px at 14% -5%, rgba(190,58,43,.06), transparent 60%),
+      radial-gradient(820px 500px at 92% 105%, rgba(47,122,87,.05), transparent 60%),
+      linear-gradient(180deg,#F1EDE4 0%,#E8E2D6 100%);
+    color:var(--ink);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:20px;gap:13px;
+  }
+  /* ============ 报告卡 ============ */
+  .card{
+    width:min(1060px,96vw);
+    height:min(880px,calc(100dvh - 44px));
+    background:var(--paper);
+    border-radius:16px;
+    box-shadow:0 30px 70px rgba(74,66,52,.20),0 1px 0 rgba(255,255,255,.75) inset;
+    display:flex;flex-direction:column;
+    overflow:hidden;position:relative;
+  }
+  .c-band{flex:none;height:6px;background:var(--ink-3)}
+  .c-band.high{background:var(--accent)}
+  .c-band.mid{background:var(--warn)}
+  .c-band.low{background:var(--safe)}
+  .c-head{
+    flex:none;height:46px;display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:0 24px;border-bottom:1px solid var(--rule);
+    font-size:13px;color:var(--ink-3);letter-spacing:.02em;
+    background:linear-gradient(#FDFCF9,#F5F1E9);
+  }
+  .c-head .brand{font-family:var(--serif);font-weight:600;font-size:15px;color:var(--ink);letter-spacing:.06em;white-space:nowrap}
+  .c-head .code{font-variant-numeric:tabular-nums;letter-spacing:.08em;white-space:nowrap}
+  .c-head .priv{white-space:nowrap;color:#7D7668}
+  .c-body{
+    flex:1;min-height:0;overflow:hidden;
+    padding:20px 34px 12px;
+    font-size:clamp(13px,1.4vh,15px);
+    display:flex;flex-direction:column;
+  }
+  .c-foot{
+    flex:none;border-top:1px solid var(--rule);
+    padding:13px 22px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:linear-gradient(#F4F1EA,#FBFAF7);
+  }
+  .c-foot .note{font-size:12px;color:var(--ink-3);margin-right:auto}
+  .c-foot input{
+    flex:1;min-width:170px;max-width:290px;font:inherit;font-size:12.5px;
+    padding:8px 11px;border:1px solid var(--rule);background:#fff;color:var(--ink-2);border-radius:7px;
+  }
+  .btn{
+    font:inherit;font-size:14px;padding:11px 26px;background:var(--ink);color:var(--paper);
+    border:none;border-radius:8px;cursor:pointer;transition:transform .12s,opacity .12s;letter-spacing:.02em;
+  }
+  .btn:hover{opacity:.88;transform:translateY(-1px)}
+  .btn:disabled{background:var(--paper-2);color:var(--ink-3);cursor:not-allowed;transform:none}
+  .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--rule)}
+  .btn-ghost:hover{background:var(--paper-2);opacity:1}
+  .mini{
+    font:inherit;font-size:12px;padding:6px 14px;background:transparent;color:var(--ink-2);
+    border:1px solid var(--rule);border-radius:6px;cursor:pointer;
+  }
+  .mini:hover{background:var(--paper-2);color:var(--ink)}
+  .stage-note{font-size:12px;color:#8D8676;letter-spacing:.04em}
+  .stage-note b{color:#6E685C;font-weight:600}
+
+  /* ============ 开场 ============ */
+  .intro{flex:1;display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}
+  .intro-l{min-width:0}
+  .kicker{font-size:13px;letter-spacing:.22em;color:var(--accent);margin-bottom:12px}
+  .intro h1{font-family:var(--serif);font-weight:600;font-size:clamp(40px,6.2vh,60px);line-height:1.16;margin-bottom:16px;letter-spacing:.01em}
+  .lede{font-size:1.12em;line-height:1.88;color:var(--ink-2);margin-bottom:24px;max-width:27em}
+  .chips{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:26px}
+  .chips span{font-size:13px;color:var(--ink-2);border:1px solid var(--rule);padding:6px 14px;border-radius:20px;background:#fff}
+  .intro .btn{font-size:15px;padding:14px 38px}
+  /* 开场页：认领上级（命名前置，打开即可见） */
+  .claim{margin:0 0 16px;padding:12px 15px;background:var(--paper-2);border:1px solid var(--rule);border-radius:12px}
+  .claim-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .claim-h b{font-family:var(--serif);font-size:1.02em;font-weight:600;color:var(--ink)}
+  .claim-h span{font-size:11.5px;color:var(--ink-3)}
+  .claim input{width:100%;font:inherit;font-size:13.5px;padding:8px 12px;border:1px solid var(--rule);border-radius:9px;background:#fff;color:var(--ink);margin-bottom:8px}
+  .claim input:focus{outline:none;border-color:var(--accent)}
+  .claim input::placeholder{color:var(--ink-3)}
+  .claim .nicks{gap:5px 6px}
+  .fine{font-size:12px;color:var(--ink-3);line-height:1.7;margin-top:16px}
+  .dexwrap{margin-top:20px}
+  .dexwrap .dl{font-size:12px;color:var(--ink-3);margin-bottom:10px;display:flex;justify-content:space-between;letter-spacing:.04em}
+  .dex{display:flex;flex-wrap:wrap;gap:7px}
+  .dex span{font-size:12px;color:var(--ink-3);border:1px solid var(--rule);padding:5px 12px;border-radius:20px;background:var(--paper)}
+  .dex span.on{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+  .irl{font-size:12.5px;color:var(--ink-3);margin-bottom:14px;letter-spacing:.06em}
+  .mini-card{
+    background:#fff;border:1px solid var(--rule);border-radius:14px;padding:26px 26px 22px;
+    box-shadow:0 26px 56px rgba(27,26,23,.15);transform:rotate(-1.1deg);
+  }
+  .mc-chip{display:inline-block;font-size:12px;letter-spacing:.14em;color:#fff;background:var(--accent);padding:4px 10px;border-radius:3px}
+  .mc-name{font-family:var(--serif);font-size:32px;font-weight:600;margin:13px 0 7px;line-height:1.15}
+  .mc-roast{font-family:var(--serif);font-size:13.5px;line-height:1.75;color:var(--ink-2);margin-bottom:16px}
+  .mc-bp{display:flex;align-items:baseline;gap:10px}
+  .mc-bp b{font-family:var(--serif);font-size:38px;font-weight:600;color:var(--accent);line-height:1}
+  .mc-bp span{font-size:12px;color:#fff;background:var(--accent);padding:3px 9px;border-radius:3px}
+  .mc-bar{height:9px;background:var(--paper-2);border-radius:5px;overflow:hidden;margin:13px 0 9px}
+  .mc-bar i{display:block;height:100%;width:75%;background:var(--accent);border-radius:5px}
+  .mc-st{font-size:12.5px;color:var(--ink-3)}
+  .mc-axes{margin-top:16px;padding-top:14px;border-top:1px solid var(--rule);display:grid;gap:8px}
+  .mc-axis{display:grid;grid-template-columns:4.8em 1fr 2.2em;align-items:center;gap:9px;font-size:11.5px;color:var(--ink-3)}
+  .mc-axis u{display:block;height:5px;border-radius:3px;background:var(--paper-2);overflow:hidden;text-decoration:none}
+  .mc-axis u b{display:block;height:100%;background:var(--accent);border-radius:3px}
+  .mc-axis em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums}
+  .mc-say{margin-top:14px;padding:10px 13px;background:var(--paper-2);border-radius:8px;font-size:12.5px;line-height:1.7;color:var(--ink-2)}
+  .mc-say b{color:var(--ink);font-weight:600}
+  @media (max-width:900px){ .intro{grid-template-columns:1fr;gap:26px} .mini-card{transform:none} }
+
+  /* ============ 答题 ============ */
+  .qwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+  .qtop{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+  .qno{font-size:13px;color:var(--ink-3);letter-spacing:.06em;font-variant-numeric:tabular-nums}
+  .qpct{font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+  .prog{height:5px;background:var(--paper-2);border-radius:5px;overflow:hidden;margin-bottom:30px}
+  .prog i{display:block;height:100%;background:var(--ink);border-radius:5px;transition:width .3s ease}
+  .qtitle{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3.3vh,31px);line-height:1.44;margin-bottom:10px}
+  .qhint{font-size:.94em;color:var(--ink-3);margin-bottom:26px}
+  .opts{display:flex;flex-direction:column}
+  .opt{
+    display:flex;gap:14px;align-items:flex-start;padding:17px 8px;
+    border-top:1px solid var(--rule);cursor:pointer;transition:background .12s;
+  }
+  .opt:last-child{border-bottom:1px solid var(--rule)}
+  .opt:hover{background:var(--paper-2)}
+  .opt.is-on{background:var(--paper-2)}
+  .opt .box{
+    flex:none;width:16px;height:16px;margin-top:3px;border:1.5px solid var(--ink-3);border-radius:50%;position:relative;
+    transition:border-color .14s;
+  }
+  .opt:hover .box{border-color:var(--ink-2)}
+  .opt.is-on .box{border-color:var(--accent)}
+  .opt.is-on .box::after{content:"";position:absolute;inset:3.5px;border-radius:50%;background:var(--accent)}
+  .opt .t{font-size:1.02em;line-height:1.6;color:var(--ink-2)}
+  .opt:hover .t,.opt.is-on .t{color:var(--ink)}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:20px}
+
+  /* ============ 结果：海报式报告 ============ */
+  .r-wrap{display:flex;flex-direction:column;flex:1}
+  .r-hero{display:grid;grid-template-columns:1.6fr 1fr;gap:30px;padding-bottom:12px;border-bottom:1px solid var(--rule)}
+  .r-hero-l{min-width:0}
+  .chip{
+    display:inline-block;font-size:11.5px;letter-spacing:.16em;color:#fff;background:var(--accent);
+    padding:5px 11px;border-radius:4px;margin-bottom:10px;
+  }
+  .chip.mid{background:var(--warn)}.chip.low{background:var(--safe)}
+  .rname{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.4vh,44px);line-height:1.14;margin-bottom:5px;letter-spacing:.01em}
+  /* 主视觉：上级名字最醒目 */
+  .objlbl{font-size:11px;letter-spacing:.24em;color:var(--accent);font-weight:600;margin-bottom:1px}
+  .bossname{
+    font-family:var(--serif);font-weight:700;font-size:clamp(38px,6vh,60px);
+    line-height:1.05;letter-spacing:.01em;color:var(--ink);margin-bottom:7px;word-break:break-word;
+  }
+  .bossname.none{color:var(--ink-3);font-size:clamp(28px,4vh,40px)}
+  .typerow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .tname{font-family:var(--serif);font-weight:600;font-size:clamp(18px,2.4vh,25px);color:var(--accent)}
+  .ttag{font-size:.85em;color:var(--ink-3)}
+  .rtag{font-size:.9em;color:var(--ink-3);margin-bottom:10px}
+  .roast{font-family:var(--serif);font-weight:600;font-size:clamp(15px,2vh,20px);line-height:1.52;color:var(--ink)}
+  .r-hero-r{display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+  .bp{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin-bottom:4px}
+  .bp-num{font-family:var(--serif);font-weight:600;font-size:clamp(44px,6.6vh,64px);line-height:1;letter-spacing:-.01em}
+  .bp-num span{font-size:.3em;color:var(--ink-3);font-weight:400;margin-left:2px;letter-spacing:0}
+  .bp-num.high{color:var(--accent)}
+  .bp-num.mid{color:var(--warn)}
+  .bp-num.low{color:var(--safe)}
+  .lv{font-size:12px;padding:5px 11px;border-radius:4px;color:#fff;white-space:nowrap}
+  .lv.high{background:var(--accent)}.lv.mid{background:var(--warn)}.lv.low{background:var(--safe)}
+  .dbar{height:12px;background:var(--paper-2);border-radius:7px;overflow:hidden;margin:8px 0 12px}
+  .dbar i{display:block;height:100%;border-radius:7px}
+  .dbar i.high{background:var(--accent)}.dbar i.mid{background:var(--warn)}.dbar i.low{background:var(--safe)}
+  .stats{display:flex;gap:24px;flex-wrap:wrap}
+  .stats b{display:block;font-family:var(--serif);font-size:1.55em;font-weight:600;line-height:1.15}
+  .stats b i{font-style:normal;font-size:.55em;color:var(--ink-3);margin-left:2px;font-family:var(--sans)}
+  .stats span{display:block;font-size:.82em;color:var(--ink-3);margin-top:1px}
+
+  .r-mid{display:grid;grid-template-columns:1.35fr 1fr;gap:30px;padding:12px 0;border-bottom:1px solid var(--rule)}
+  .r-mid-l,.r-mid-r{min-width:0}
+  .rdesc{font-size:.95em;line-height:1.7;color:var(--ink-2);margin-bottom:10px}
+  .sec{font-family:var(--serif);font-size:1.02em;font-weight:600;margin-bottom:8px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .sec em{font-style:normal;font-size:12px;font-weight:400;color:var(--ink-3);letter-spacing:.02em}
+  .axis{display:grid;grid-template-columns:5.6em 1fr 2.6em;align-items:center;gap:11px;margin-bottom:7px}
+  .axis .lab{font-size:.9em;color:var(--ink-2)}
+  .axis .track{display:block;height:9px;background:var(--paper-2);border-radius:5px;overflow:hidden}
+  .axis .fill{display:block;height:100%;border-radius:5px}
+  .axis .fill.good{background:var(--safe)}.axis .fill.warn{background:var(--warn)}.axis .fill.bad{background:var(--accent)}
+  .axis .val{font-size:.86em;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+  .axis .val.good{color:var(--safe)}.axis .val.warn{color:var(--warn)}.axis .val.bad{color:var(--accent)}
+
+  .saylbl{font-size:.84em;color:var(--ink-3);margin:0 0 4px;letter-spacing:.04em}
+  .say{font-family:var(--serif);font-weight:600;font-size:1.2em;line-height:1.5;margin-bottom:10px}
+  .inner{font-family:var(--serif);font-size:1.1em;line-height:1.55;color:var(--ink-2);margin-bottom:10px}
+  .line{margin:0;padding:10px 13px;background:var(--paper-2);border-radius:8px;font-size:.94em;line-height:1.66;color:var(--ink)}
+  .copyrow{display:flex;justify-content:flex-end;margin-top:6px}
+
+  .r-low{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding-top:12px}
+  .r-low-l,.r-low-r{min-width:0}
+  .vent{list-style:none;margin:0;padding:0}
+  .vent li{
+    display:flex;justify-content:space-between;align-items:baseline;gap:14px;
+    font-size:.92em;line-height:1.6;color:var(--ink-2);padding:7px 0;border-top:1px solid var(--rule);cursor:pointer;
+  }
+  .vent li:hover{color:var(--ink)}
+  .vent li .cp{flex:none;font-size:12px;color:var(--ink-3)}
+  .vent li:hover .cp{color:var(--accent)}
+  .tip,.kit{list-style:none;margin:0;padding:0}
+  .tip li,.kit li{font-size:.9em;line-height:1.6;color:var(--ink-2);padding:5px 0;border-top:1px solid var(--rule);display:flex;gap:9px}
+  .tip li::before,.kit li::before{content:"";flex:none;width:6px;height:6px;margin-top:7px;border-radius:50%;background:var(--accent)}
+  .kit li::before{background:var(--ink-3)}
+  .verdict{font-size:.9em;line-height:1.66;color:var(--ink);margin-top:9px;padding:8px 12px;background:var(--paper-2);border-radius:8px}
+  .concl{
+    display:flex;align-items:center;gap:12px;
+    font-size:clamp(13px,1.55vh,15px);line-height:1.55;font-weight:600;color:#fff;
+    padding:8px 15px;border-radius:8px;margin-bottom:10px;
+  }
+  .concl.high{background:var(--accent)}
+  .concl.mid{background:var(--warn)}
+  .concl.low{background:var(--safe)}
+  .concl .tagline{font-size:.82em;font-weight:400;opacity:.92}
+  /* 外号按钮（命名屏共用） */
+  .nicks{display:flex;flex-wrap:wrap;gap:5px 6px}
+  .nicks button{
+    flex:none;font:inherit;font-size:11.5px;padding:4px 10px;border-radius:20px;cursor:pointer;white-space:nowrap;
+    border:1px dashed var(--rule);background:transparent;color:var(--ink-2);transition:all .12s;
+  }
+  .nicks button:hover,.nicks button.on{border-style:solid;border-color:var(--accent);color:var(--accent);background:#fff}
+  .future{font-size:.9em;line-height:1.62;color:var(--ink-2);margin-top:7px;padding-left:12px;border-left:2px solid var(--rule)}
+  .future b{color:var(--accent);font-weight:600}
+
+  /* ============ 命名：第 10 题之后的独立窗口 ============ */
+  .namewrap{
+    flex:1;min-height:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    text-align:center;padding:4px 0;
+  }
+  .nlede{
+    font-family:var(--serif);font-weight:600;
+    font-size:clamp(22px,3.2vh,30px);line-height:1.45;color:var(--ink);
+    margin-bottom:26px;
+  }
+  .ninput{
+    width:min(420px,86%);font-family:var(--serif);font-weight:600;
+    font-size:clamp(20px,2.8vh,26px);text-align:center;
+    padding:11px 18px;border:1px solid var(--rule);border-radius:11px;
+    background:#fff;color:var(--ink);margin-bottom:24px;transition:border-color .16s;
+  }
+  .ninput:focus{outline:none;border-color:var(--accent)}
+  .ninput::placeholder{color:var(--ink-3);font-family:var(--sans);font-weight:400;font-size:.56em}
+  .nnicks{
+    display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:8px;width:min(760px,100%);margin:0 0 28px;flex:none;
+  }
+  .nnicks button{
+    height:auto;font:inherit;font-size:12px;line-height:1.3;
+    padding:9px 6px;border-radius:9px;cursor:pointer;white-space:nowrap;
+    border:1px solid var(--rule);background:transparent;color:var(--ink-2);
+    transition:all .12s;
+  }
+  .nnicks button:hover,.nnicks button.on{border-color:var(--accent);color:var(--accent);background:#fff}
+  .nact{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center}
+  .nskip{font:inherit;font-size:13px;padding:6px 4px;border:none;background:transparent;color:var(--ink-3);cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+  .nskip:hover{color:var(--ink)}
+
+  @media (max-width:900px){
+    .card{height:auto;min-height:calc(100dvh - 74px)}
+    .r-hero,.r-mid,.r-low{grid-template-columns:1fr;gap:16px}
+    .c-body{overflow:visible}
+  }
+</style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="c-band" id="band"></div>
+    <div class="c-head">
+      <span class="brand">上司图鉴</span>
+      <span class="code" id="hcode">SX-0000</span>
+      <span class="priv">纯本地 · 零上传 · 他不会知道</span>
+    </div>
+    <div class="c-body" id="main"></div>
+    <div class="c-foot" id="foot"></div>
+  </div>
+  <p class="stage-note"><b>截图这张卡片</b> 就能直接发群 · 链接只会还原你选的答案</p>
+
+<script>
+/* ===================== 数据：原创题目与四维计分 ===================== */
+/* 四维轴：A 控制倾向 / R 担当指数 / E 情绪平稳 / D 决断速度（每题选项加权，全非负） */
+const QUESTIONS = [
+  { q:"一份方案交上去，他最常做的第一件事是？",
+    hint:"回想最近几次，他打开文件后的默认动作。",
+    opts:[
+      {t:"逐行批注格式，连缩进都不放过。", w:[16,2,2,0]},
+      {t:"问你为什么这么写，听你讲完再评价。", w:[6,8,4,4]},
+      {t:"扫一眼说还行，之后没再管。", w:[2,4,4,2]},
+      {t:"转发给大老板，措辞像是他带着团队做的。", w:[4,0,2,2]}
+    ]},
+  { q:"项目出了岔子，他的第一反应是？",
+    hint:"看他在压力下的本能，而不是他事后怎么说。",
+    opts:[
+      {t:"拉群复盘，责任到我，不往外推。", w:[2,16,4,6]},
+      {t:"先问清楚原因，再一起想办法。", w:[2,10,4,4]},
+      {t:"在会上说：这事儿我怎么不知道。", w:[2,0,2,2]},
+      {t:"私下让你顶，对外由他来汇报。", w:[2,0,2,2]}
+    ]},
+  { q:"他被上级批评后，回到团队的表现是？",
+    hint:"上级的压力通常会顺着层级往下漏。",
+    opts:[
+      {t:"很平静，照常安排工作。", w:[2,4,16,4]},
+      {t:"话变少，但推进正常。", w:[2,2,10,4]},
+      {t:"把火撒在最近的那个人身上。", w:[2,2,2,0]},
+      {t:"阴阳怪气一整天，谁都别想好过。", w:[2,2,2,0]}
+    ]},
+  { q:"两个方案僵持不下时，他通常？",
+    hint:"看他怎么把悬着的判断落地。",
+    opts:[
+      {t:"当场拍板，错了他担。", w:[2,10,4,16]},
+      {t:"列个对比表，约明天再定。", w:[2,4,4,4]},
+      {t:"说再调研调研，然后没下文。", w:[2,2,4,0]},
+      {t:"让你先试 A，下午又让你换 B。", w:[2,0,2,0]}
+    ]},
+  { q:"你请假半天，他的处理是？",
+    hint:"小事里最容易看见控制欲的刻度。",
+    opts:[
+      {t:"要你填三张表，并指定接手人明细。", w:[16,2,2,0]},
+      {t:"准了，记得同步一下进度就行。", w:[4,8,4,4]},
+      {t:"哦行，没事。", w:[0,4,4,2]},
+      {t:"顺便把你这半天的活分给他信得过的人。", w:[10,0,2,0]}
+    ]},
+  { q:"你们拿了部门奖，对外怎么讲？",
+    hint:"荣誉面前，他怎么安放别人的名字。",
+    opts:[
+      {t:"在全员会上点名每位成员。", w:[2,16,4,4]},
+      {t:"说是团队成绩，包括支持部门。", w:[2,12,4,4]},
+      {t:"他上台领奖，讲稿里没提你。", w:[2,0,2,2]},
+      {t:"对内群发感谢，对外写主导是我。", w:[2,0,2,2]}
+    ]},
+  { q:"临时加班赶节点，团队气氛是？",
+    hint:"看他怎么陪团队走最累的那段路。",
+    opts:[
+      {t:"他陪着熬，收工请大家吃夜宵。", w:[2,8,14,4]},
+      {t:"正常安排，不煽情也不施压。", w:[2,4,10,4]},
+      {t:"在群里发：这点活都搞不定？", w:[2,0,2,0]},
+      {t:"摔键盘说上次就说过会这样。", w:[2,0,2,0]}
+    ]},
+  { q:"他描绘的明年规划，通常？",
+    hint:"画饼和蓝图的区别，在于能不能踩下去。",
+    opts:[
+      {t:"有清晰路径和责任人，能落地。", w:[2,10,4,14]},
+      {t:"方向清楚，细节待定。", w:[2,4,4,6]},
+      {t:"宏大，但听完不知道干啥。", w:[2,0,4,0]},
+      {t:"年年一样，从没兑现过。", w:[2,0,2,0]}
+    ]},
+  { q:"你需要他拍板，常见状态是？",
+    hint:"急事当前，他好不好找。",
+    opts:[
+      {t:"秒回，连细节都替你想好。", w:[14,2,4,4]},
+      {t:"上班时间在，找得到。", w:[4,6,4,4]},
+      {t:"在开会，其实在摸鱼。", w:[2,0,4,2]},
+      {t:"三天联系不上，急事你先扛。", w:[0,0,4,0]}
+    ]},
+  { q:"他上周说 A 这周说 B，你的感受是？",
+    hint:"变来变去不可怕，可怕的是他不认账。",
+    opts:[
+      {t:"他前后一致，变也是因为有了新信息。", w:[2,10,4,10]},
+      {t:"偶尔调整，能理解。", w:[2,4,4,4]},
+      {t:"经常反转，得时刻留记录自保。", w:[2,0,2,0]},
+      {t:"他否认说过 A，说你记错了。", w:[2,0,2,0]}
+    ]}
+];
+
+/* 四维满分（用于归一化到 0-100） */
+const MAX = { A:60, R:98, E:56, D:82 };
+const AXES = [
+  {k:"A", name:"控制倾向"},
+  {k:"R", name:"担当指数"},
+  {k:"E", name:"情绪平稳"},
+  {k:"D", name:"决断速度"}
+];
+
+/* 8 种原型：以四维质心定义，归类取最近者（原创命名与描述） */
+const TYPES = [
+  { key:"microscope", name:"显微镜型", tag:"你交出去的东西，回来时都长得像他做的",
+    c:[90,45,70,45],
+    roast:"他连你用什么标点呼吸都要管。",
+    future:"三年后：你的活很干净，简历也很干净，干净得像从没存在过。",
+    say:"这里为什么是两个空格？",
+    inner:"因为这是正文，不是你的墓碑。",
+    desc:"格式、措辞、顺序，全要合他的刻度。活儿最后多半能成，但署名权、判断权、审美权，一样一样被收走。干到最后，你只是在临摹他的偏好。",
+    line:"「这版按您上次的批注改完了。要是还有格式问题，我们定个模板，省得每版都返工一次。」",
+    vent:["我的工作不是写方案，是猜他的排版偏好。","改了七版，最后用的是第一版，中间六版是忠诚度测试。"],
+    tips:["把他的格式偏好先列成清单，一次性对齐，省去来回。","重要的中间节点主动汇报，别等他来翻。","留一点只属于你的判断空间，别把自己养成执行按钮。"] },
+  { key:"passer", name:"甩锅风筝", tag:"风往哪吹，锅往哪飞",
+    c:[50,10,55,55],
+    roast:"风向一变，你就在他的叙事里变成了责任人。",
+    future:"三年后：你练出一身顶锅的本事，却没攒下一件拿得出手的活。",
+    say:"这个事我怎么不知道？",
+    inner:"因为你只参加不用担责的会。",
+    desc:"出了事，他的第一反应是把责任理顺到别人身上。项目成了是他的判断，项目砸了是你的执行。你不在团队里，你是他的防火墙。",
+    line:"「这个结论我是按会议纪要执行的。要改的话，麻烦您在群里确认一下，我好留个记录。」",
+    vent:["他的记性只在对己有利的时候特别好。","锅从天上掉下来，落点永远是工位最靠里的那个。"],
+    tips:["关键决策留文字记录，群里确认比口头靠谱。","他推过来的事，先接住再划线，别当场硬顶。","定期把你的贡献量化写出来，让他不好吞。"] },
+  { key:"harvester", name:"摘桃侠", tag:"苦你吃，果他摘",
+    c:[60,40,75,80],
+    roast:"他讲 PPT 的时候，你连「我们」都不配出现在句子里。",
+    future:"三年后：他升上去了，你还在原地，连名字都没被人记住过。",
+    say:"这个项目是我们团队一起做的。",
+    inner:"是我做的，你只是念稿的那个。",
+    desc:"活儿你干，台他站。对外他讲得眉飞色舞，对内连个名字都懒得提。他是方案的父亲，你是方案的产房。能力强、推进快，代价是你的存在感常年被他吞掉。",
+    line:"「这块是我跟进的，数据我整理了一份，需要的话我直接在群里发给大家。」",
+    vent:["他领奖那天穿得比谁都隆重。","我的名字在他的汇报里是一个代词：团队。"],
+    tips:["荣誉场合主动露脸，别把讲台全让出去。","把过程节点同步给更广的人，扩大可见度。","衡量清楚：跟着他能学到东西，就用成长换曝光。"] },
+  { key:"ghost", name:"神隐菩萨", tag:"佛是佛，人是找不到的人",
+    c:[20,20,75,10],
+    roast:"他的管理风格就两个字：不在。",
+    future:"三年后：你习惯了所有事自己扛，也习惯了没人替你扛。",
+    say:"这个你先看着办。",
+    inner:"我一直在看着办，就是工资没跟着一起看。",
+    desc:"不折腾你，也不帮你。遇事找不到人，决策永远在来的路上。你既没有上级，也没有授权，只有责任。这三样东西，他那儿是分开存放的。",
+    line:"「这件事需要您拍板，我在群里 @ 您了。明天中午前没回复，我就按 A 方案推进。」",
+    vent:["找他审批比找他借钱还难。","他的「已读」，是我今天最接近成功的一次沟通。"],
+    tips:["把需要他拍板的事集中起来，定点去堵。","建立自己的判断标准，别等指令。","善用这段自由提升能力，但别替他背锅。"] },
+  { key:"volcano", name:"火山型", tag:"平静是假象，爆发是规律",
+    c:[70,40,10,75],
+    roast:"他的情绪是活火山，你练的是疏散，不是预测。",
+    future:"三年后：你下班回家什么都不想说，只会庆幸今天没出事。",
+    say:"我上次是不是说过？",
+    inner:"你说过很多次，每次都不一样。",
+    desc:"平时可能还好，一旦被压到临界点就直接喷。你上班像在值班观察一座活火山，还得假装没闻到硫磺味。活儿推进快，代价是你的心理损耗。",
+    line:"「这事我们先按流程走着，等您方便的时候，再和您对一下细节。」",
+    vent:["我今天的第一项工作计划，是判断他今天心情如何。","开会前我会看一眼他杯子放得重不重。"],
+    tips:["识别他的压力源，尽量在爆发前把火星掐掉。","他发火时不接招，等凉了再谈事。","给自己划情绪隔离区，别把他的火当成你的错。"] },
+  { key:"promiser", name:"画饼仙人", tag:"蓝图很美，落不了地",
+    c:[30,25,70,15],
+    roast:"他画的饼能喂饱整个部门的想象力，唯独喂不饱你的简历。",
+    future:"三年后：他换了更大的饼，你换了更深的疲惫。",
+    say:"明年这个时候，情况就不一样了。",
+    inner:"这话我入职那年就听过了。",
+    desc:"远景讲得你一度热血，可一年年过去，饼还是那张饼。他不是坏，他是停在说。跟着他最容易空转。忙了一整年，简历上长不出一个硬东西。",
+    line:"「这块我想落到具体节点，能不能定一下这季度要交付什么？我好排期。」",
+    vent:["明年这个时候，我们还在这张饼上开会。","他的愿景很大，我的工资没变。"],
+    tips:["把他的承诺拆成可验收的小节点，逼出落地。","别用他的愿景当自己的规划，自己算账。","定期问：这件事我能带走什么能力？"] },
+  { key:"chameleon", name:"变色龙", tag:"昨天的话，今天不作数",
+    c:[45,20,60,20],
+    roast:"他改口的速度，比你改稿的速度还快。",
+    future:"三年后：你最熟练的技能变成截图、留痕、自证，这些本来不该是你的主业。",
+    say:"我一直是这个意思。",
+    inner:"那你的意思是，我记错了三年。",
+    desc:"方向变得未必错，错在变得不认账。你刚按 A 做完，他说一直要的是 B。改十遍不可怕，可怕的是永远在猜他此刻的版本，还得证明自己没记错。",
+    line:"「我按上周会上定的 A 做的。要换成 B，我把差异理一下，您确认后我再动。」",
+    vent:["「我一直是这个意思」，是我今年听过最多的谎。","跟他干活，最重要的技能是截图。"],
+    tips:["每次方向变更，留文字确认，让他不好翻脸不认。","把可复用的部分做成模块，改起来成本低。","看他变的是信息还是心情，前者跟，后者防。"] },
+  { key:"ironhand", name:"铁腕型", tag:"强势，但靠谱",
+    c:[85,80,55,85],
+    roast:"他骂人很直接，但替你挡刀的时候也从不含糊。",
+    future:"三年后：你要么跟他一起上去，要么带着一身本事离开，两种都不亏。",
+    say:"行，就这么定，出问题我担。",
+    inner:"行，那我跟着你干。",
+    desc:"控制强、拍板快、出事他站前面。你会被管得紧，但边界清楚、功劳归谁也不用猜。这类最累，却是少见的、值得跟的那一种。",
+    line:"「这块我想自己扛一次，出了问题我负责。」",
+    vent:["被他骂完，居然还有点想谢谢他。","他是这栋楼里唯一一个说话算数的人。"],
+    tips:["在他定的框架内把事做到位，他会给你空间。","主动扛责任，换取更大的信任与资源。","明确你的授权边界，别让强势变成越界。"] }
+];
+
+/* 血压指数：控制 + 低担当 + 低情绪平稳 合并加权 → 绿/黄/红 */
+function dangerScore(s){
+  return 0.20*s.A + 0.35*(100-s.R) + 0.35*(100-s.E) + 0.10*(100-s.D);
+}
+const TIERS = {
+  low:{ cls:"low", label:"绿灯 · 运气还行", conclusion:"结论：运气还行，但他还在磨你。", sub:"能处，别掏心。",
+    verdict:"你的上级不完美，但至少没把你当耗材。这年头，这已经算抽到好签。",
+    kit:["和他建立稳定预期，主动对齐节奏。","把你的成绩留成正面记录，利于后续成长。","在框架内争取更多自主权，关系会越走越顺。"] },
+  mid:{ cls:"mid", label:"黄灯 · 已经在耗你了", conclusion:"结论：你已经在被消耗，只是还没意识到。", sub:"该设边界了。",
+    verdict:"问题不在于他有多坏，而在于你已经为他多花了一份心力。这份心力，公司不付钱。",
+    kit:["关键沟通留痕，重要结论落到文字。","在团队里找盟友，别一个人在信息孤岛上。","把贡献量化呈现，让抢功和甩锅都没那么容易。"] },
+  high:{ cls:"high", label:"红灯 · 该算止损了", conclusion:"结论：该止损了，不是该忍耐。", sub:"工作可以累，不该被磨。",
+    verdict:"这不是工作强度的问题，是你正在被一个人持续消耗的问题。",
+    kit:["更新简历，保持外部可见度，别和市场脱节。","悄悄拓展人脉与技能，给自己留退路。","设一个明确的离场触发点，到了就走，不硬撑。"] }
+};
+
+/* ===================== 状态机 ===================== */
+const state = { screen:"intro", qi:0, answers:new Array(QUESTIONS.length).fill(null), boss:"" };
+
+/* 预置离谱外号：点一下直接采用，不用用户自己想 */
+const NICKS = ["已读艺术家","画饼学家","甩锅锦标赛冠军","午遁行者","会议永动机","复盘复读机","情绪天气预报员","工位隐形人","对齐一下复读机","下班前派活侠","@全体成员爱好者","OK 批发商"];
+function nicksButtons(){
+  return NICKS.map(n=>'<button type="button" data-n="'+esc(n)+'">'+esc(n)+'</button>').join('');
+}
+const BOSS_KEY = 'sxmap_boss_v1';
+function loadBoss(){ try{ return localStorage.getItem(BOSS_KEY)||''; }catch(e){ return ''; } }
+function saveBoss(v){ try{ localStorage.setItem(BOSS_KEY,v); }catch(e){} }
+function echoBoss(){
+  const v = state.boss.trim();
+  document.querySelectorAll('[data-bossname]').forEach(el=>{
+    el.textContent = v || '你的上级';
+    el.classList.toggle('none', !v);
+  });
+  if(state.screen==="result") fitScreen();
+}
+
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function setCode(t){ document.getElementById('hcode').textContent = t; }
+function setBand(cls){ document.getElementById('band').className = 'c-band'+(cls?' '+cls:''); }
+/* 兜底：任何一屏内容超出卡片时整体等比缩小，保证任何分辨率都不出现滚动条、也不裁切 */
+function fitScreen(){
+  const body = document.getElementById('main');
+  const el = body && body.firstElementChild;
+  if(!el) return;
+  el.style.transform = 'none';
+  el.style.width = '';
+  el.style.marginBottom = '0px';
+  const avail = body.clientHeight - 2;
+  const need = el.scrollHeight;
+  if(need > avail && avail > 0){
+    const k = avail / need;
+    el.style.transformOrigin = 'top left';
+    el.style.transform = 'scale(' + k.toFixed(4) + ')';
+    el.style.width = (100 / k).toFixed(3) + '%';
+    el.style.marginBottom = '-' + Math.round(need - avail) + 'px';
+  }
+}
+function fitAfter(){ fitScreen(); requestAnimationFrame(fitScreen); }
+window.addEventListener('resize', fitScreen);
+
+function renderFoot(kind){
+  const f = document.getElementById('foot');
+  if(kind==="result"){
+    const disp = (location.pathname.split('/').pop()||'index.html') + (location.hash||'');
+    f.innerHTML =
+      '<span class="note">截图或存为图片即可发群 · 链接只会还原你选的答案</span>'+
+      '<input id="shareUrl" readonly value="'+esc(disp)+'">'+
+      '<button class="mini" id="saveBtn">存为图片</button>'+
+      '<button class="mini" id="copyBtn">复制链接</button>'+
+      '<button class="btn btn-ghost" id="againBtn" style="padding:8px 18px;font-size:13px">重新鉴定</button>';
+    document.getElementById('saveBtn').onclick = (e) => drawPoster(e.currentTarget);
+    document.getElementById('copyBtn').onclick = (e) => {
+      const done = () => flash(e.currentTarget,'已复制');
+      if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(location.href).then(done).catch(done);
+      else done();
+    };
+    document.getElementById('againBtn').onclick = () => {
+      state.screen="intro"; state.qi=0; state.answers=new Array(QUESTIONS.length).fill(null);
+      if(location.hash) history.replaceState(null,'',location.pathname+location.search);
+      render();
+    };
+  } else {
+    const withBtn = (kind==="quiz" || kind==="name");
+    const lbl = kind==="name" ? '回上一题' : '退出';
+    f.innerHTML =
+      '<span class="note">全程在本机计算，不上传、不发任何请求</span>'+
+      (withBtn ? '<button class="btn btn-ghost" id="quitBtn" style="padding:8px 18px;font-size:13px">'+lbl+'</button>' : '');
+    if(kind==="quiz"){
+      document.getElementById('quitBtn').onclick = () => { state.screen="intro"; render(); };
+    } else if(kind==="name"){
+      document.getElementById('quitBtn').onclick = () => { state.screen="quiz"; state.qi=QUESTIONS.length-1; render(); };
+    }
+  }
+}
+function flash(btn,t){ if(!btn) return; const o=btn.textContent; btn.textContent=t; setTimeout(()=>{btn.textContent=o;},1200); }
+
+/* ===================== Canvas 手绘竖版海报（零依赖，带编号/日期/裂变文案） ===================== */
+const POSTER_W = 1080;
+function posterData(){
+  const s = computeScores();
+  const type = classify(s);
+  const d = dangerScore(s);
+  const dv = Math.round(d);
+  const tier = d>=64 ? TIERS.high : (d>=34 ? TIERS.mid : TIERS.low);
+  const hoursWeek = Math.round((d/100*11)*10)/10;
+  const daysYear = Math.round(hoursWeek*48/8);
+  return {s,type,dv,tier,hoursWeek,daysYear};
+}
+function rr(x,X,Y,W,H,R){
+  x.beginPath(); x.moveTo(X+R,Y);
+  x.arcTo(X+W,Y,X+W,Y+H,R); x.arcTo(X+W,Y+H,X,Y+H,R);
+  x.arcTo(X,Y+H,X,Y,R); x.arcTo(X,Y,X+W,Y,R); x.closePath();
+}
+function wrapLines(x,text,maxW){
+  const out=[]; let cur='';
+  for(const ch of String(text)){
+    if(cur && x.measureText(cur+ch).width>maxW){ out.push(cur); cur=ch; }
+    else cur+=ch;
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+function drawPoster(btn){
+  const bad = () => flash(btn,'导出失败·请直接截图');
+  try{
+    const P = posterData();
+    const {s,type,dv,tier,hoursWeek,daysYear} = P;
+    const W = POSTER_W, M = 64;
+    const c = document.createElement('canvas');
+    c.width = W; c.height = 2400;
+    const x = c.getContext('2d');
+    const SANS = '"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+    const SER = '"Noto Serif SC","Songti SC",Georgia,serif';
+    const C = { ink:'#26241F', ink2:'#5B554A', ink3:'#8D8676', paper:'#FCFAF6', paper2:'#F2EEE5', rule:'#E6E0D3',
+                accent:'#BE3A2B', safe:'#2F7A57', warn:'#C98A1E' };
+    const tierColor = tier.cls==='high'?C.accent:(tier.cls==='mid'?C.warn:C.safe);
+
+    x.fillStyle = C.paper; x.fillRect(0,0,W,c.height);
+    x.fillStyle = tierColor; x.fillRect(0,0,W,16);
+
+    // 纸纹噪点（确定性分布，每次导出一致）
+    x.save(); x.globalAlpha = 0.022; x.fillStyle = '#7a6f5c';
+    for(let i=0;i<520;i++){
+      x.fillRect((i*97.13)%W, (i*53.77)%c.height, 2, 2);
+    }
+    x.restore();
+
+    const now = new Date();
+    const dateStr = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    let y = 78;
+
+    // 品牌行：左品牌，右编号 + 日期
+    x.font = '600 34px '+SER; x.fillStyle = C.ink; x.textBaseline='alphabetic';
+    x.fillText('上司图鉴', M, y);
+    x.font = '22px '+SANS; x.fillStyle = C.ink3;
+    const sub2 = '职场生存工具 · 十题鉴定';
+    x.fillText(sub2, M+x.measureText('上司图鉴').width+18, y);
+    x.font = '24px '+SANS;
+    const codeTxt = '编号 SX-'+String(dv).padStart(4,'0')+' · '+dateStr;
+    x.fillText(codeTxt, W-M-x.measureText(codeTxt).width, y);
+    y += 26;
+    x.strokeStyle = C.rule; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(M,y); x.lineTo(W-M,y); x.stroke();
+    y += 58;
+
+    // 结论横幅
+    const ch = 76;
+    x.fillStyle = tierColor; rr(x,M,y,W-M*2,ch,10); x.fill();
+    x.font = '600 30px '+SANS; x.fillStyle = '#fff';
+    const cw = x.measureText(tier.conclusion).width;
+    x.fillText(tier.conclusion, M+(W-M*2-cw)/2, y+46);
+    y += ch + 54;
+
+    // 鉴定对象：名字最醒目，原型降为次级
+    const bossName = state.boss.trim();
+    if(bossName){
+      x.font = '24px '+SANS; x.fillStyle = C.ink3;
+      x.fillText('鉴定对象', M, y+8); y += 40;
+      x.font = '700 84px '+SER; x.fillStyle = C.ink;
+      wrapLines(x, bossName, W-M*2).forEach(l=>{ x.fillText(l, M, y+70); y += 94; });
+      y += 6;
+      x.font = '600 58px '+SER; x.fillStyle = C.accent;
+      x.fillText(type.name, M, y+50); y += 74;
+      x.font = '26px '+SANS; x.fillStyle = C.ink3;
+      x.fillText(type.tag, M, y); y += 52;
+    } else {
+      x.font = '600 92px '+SER; x.fillStyle = C.ink;
+      x.fillText(type.name, M, y+84); y += 108;
+      x.font = '26px '+SANS; x.fillStyle = C.ink3;
+      x.fillText(type.tag, M, y); y += 52;
+    }
+    x.font = '600 38px '+SER; x.fillStyle = C.ink;
+    wrapLines(x,'「'+type.roast+'」',W-M*2).forEach(l=>{ x.fillText(l,M,y); y += 56; });
+    y += 26;
+
+    // 血压区
+    x.font = '600 130px '+SER; x.fillStyle = tierColor;
+    x.fillText(String(dv), M, y+112);
+    const nw = x.measureText(String(dv)).width;
+    x.font = '30px '+SANS; x.fillStyle = C.ink3;
+    x.fillText('/100', M+nw+12, y+112);
+    // 档位胶囊
+    x.font = '26px '+SANS;
+    const lw = x.measureText(tier.label).width;
+    x.fillStyle = tierColor; rr(x, M+nw+96, y+66, lw+36, 46, 6); x.fill();
+    x.fillStyle = '#fff'; x.fillText(tier.label, M+nw+114, y+97);
+    // 统计（右对齐，避开中间元素）
+    x.font = '600 30px '+SANS; x.fillStyle = C.ink;
+    const st1 = hoursWeek+' 小时';
+    x.fillText(st1, W-M-x.measureText(st1).width, y+58);
+    x.font = '22px '+SANS; x.fillStyle = C.ink3;
+    const st1b = '每周为他额外消耗';
+    x.fillText(st1b, W-M-x.measureText(st1b).width, y+90);
+    const st2 = '一年折合 '+daysYear+' 个工作日';
+    x.fillText(st2, W-M-x.measureText(st2).width, y+124);
+    // 难度条
+    const barY = y+152, barW = W-M*2;
+    x.fillStyle = C.paper2; rr(x,M,barY,barW,20,10); x.fill();
+    x.fillStyle = tierColor; rr(x,M,barY,barW*dv/100,20,10); x.fill();
+    y = barY + 62;
+
+    // 分隔
+    x.strokeStyle = C.rule; x.beginPath(); x.moveTo(M,y); x.lineTo(W-M,y); x.stroke();
+    y += 52;
+
+    // 四维轴
+    x.font = '600 28px '+SANS; x.fillStyle = C.ink;
+    x.fillText('四维行为轴', M, y); y += 40;
+    AXES.forEach(ax=>{
+      const v = s[ax.k];
+      const tone = ax.k==='A' ? (v>=65?C.accent:(v>=40?C.warn:C.safe)) : (v>=60?C.safe:(v>=35?C.warn:C.accent));
+      x.font = '24px '+SANS; x.fillStyle = C.ink2;
+      x.fillText(ax.name, M, y+20);
+      const tx = M+180, tw = W-M*2-180-70;
+      x.fillStyle = C.paper2; rr(x,tx,y+2,tw,16,8); x.fill();
+      x.fillStyle = tone; rr(x,tx,y+2,Math.max(16,tw*v/100),16,8); x.fill();
+      x.font = '600 24px '+SANS; x.fillStyle = tone;
+      x.fillText(String(v), W-M-x.measureText(String(v)).width, y+20);
+      y += 42;
+    });
+    y += 22;
+
+    // 他说 · 你回
+    x.font = '600 28px '+SANS; x.fillStyle = C.ink;
+    x.fillText('他说 · 你回', M, y); y += 46;
+    x.font = '22px '+SANS; x.fillStyle = C.ink3;
+    x.fillText('他嘴里最常出现的那句', M, y); y += 40;
+    x.font = '600 34px '+SER; x.fillStyle = C.ink;
+    wrapLines(x,'「'+type.say+'」',W-M*2).forEach(l=>{ x.fillText(l,M,y); y += 50; });
+    y += 14;
+    x.font = '22px '+SANS; x.fillStyle = C.ink3;
+    x.fillText('你心里其实想回的那句', M, y); y += 40;
+    x.font = '32px '+SER; x.fillStyle = C.ink2;
+    wrapLines(x,'「'+type.inner+'」',W-M*2).forEach(l=>{ x.fillText(l,M,y); y += 48; });
+    y += 14;
+    x.font = '22px '+SANS; x.fillStyle = C.ink3;
+    x.fillText('下次见面，可以这么说', M, y); y += 40;
+    x.font = '26px '+SANS; x.fillStyle = C.ink;
+    const lh = 40, lpad = 22;
+    const lineLines = wrapLines(x,type.line,W-M*2-lpad*2);
+    x.fillStyle = C.paper2; rr(x,M,y-26,W-M*2,lineLines.length*lh+lpad*2,8); x.fill();
+    lineLines.forEach((l,i)=>{ x.fillText(l,M+lpad,y+i*lh+10); });
+    y += lineLines.length*lh + lpad*2 + 34;
+
+    // 三年推演
+    x.font = '26px '+SANS; x.fillStyle = C.ink2;
+    wrapLines(x,'三年推演：'+type.future,W-M*2).forEach(l=>{ x.fillText(l,M,y); y += 40; });
+    y += 18;
+
+    // 吐槽
+    x.font = '600 28px '+SANS; x.fillStyle = C.ink;
+    x.fillText('你已经忍了很久了', M, y); y += 44;
+    x.font = '26px '+SANS; x.fillStyle = C.ink2;
+    type.vent.forEach(v=>{
+      wrapLines(x,'· '+v,W-M*2).forEach(l=>{ x.fillText(l,M,y); y += 38; });
+      y += 6;
+    });
+    y += 26;
+
+    // 底部裂变（按钮样式 + 红章落款）
+    x.strokeStyle = C.rule; x.beginPath(); x.moveTo(M,y); x.lineTo(W-M,y); x.stroke();
+    y += 46;
+    const btnW = 620, btnH = 78;
+    x.strokeStyle = C.accent; x.lineWidth = 2;
+    rr(x,(W-btnW)/2, y, btnW, btnH, 12); x.stroke();
+    x.font = '600 31px '+SANS; x.fillStyle = C.accent;
+    const hook = '测测你的上级是哪种，看看谁的更过分';
+    x.fillText(hook, (W-x.measureText(hook).width)/2, y+48);
+    y += btnH + 36;
+    x.font = '21px '+SANS; x.fillStyle = C.ink3;
+    const sub3 = '网页搜「上司图鉴」，十题出报告 · 全程本机计算，不上传';
+    x.fillText(sub3, (W-x.measureText(sub3).width)/2, y); y += 30;
+
+    // 红章（右下角落款）
+    x.save();
+    x.translate(W-M-56, y-6); x.rotate(-0.16);
+    x.strokeStyle = 'rgba(190,58,43,.82)'; x.lineWidth = 4;
+    rr(x,-52,-52,104,104,10); x.stroke();
+    x.lineWidth = 1.5; rr(x,-44,-44,88,88,8); x.stroke();
+    x.font = '600 23px '+SER; x.fillStyle = 'rgba(190,58,43,.85)';
+    x.fillText('已鉴定', -34, 2);
+    x.font = '19px '+SANS;
+    x.fillText('SX-'+String(dv).padStart(4,'0'), -32, 28);
+    x.restore();
+    y += 66;
+
+    // 免责
+    x.font = '20px '+SANS; x.fillStyle = C.ink3;
+    const dis = '趣味自评，非标准化心理量表 · 未做信效度检验';
+    x.fillText(dis, (W-x.measureText(dis).width)/2, y); y += 30;
+
+    // 暗角（压在内容之上，四角轻微收暗）
+    const vg = x.createRadialGradient(W/2, c.height/2, Math.min(W,c.height)*0.34, W/2, c.height/2, Math.max(W,c.height)*0.78);
+    vg.addColorStop(0,'rgba(70,60,45,0)'); vg.addColorStop(1,'rgba(70,60,45,0.10)');
+    x.fillStyle = vg; x.fillRect(0,0,W,c.height);
+
+    // 裁剪到实际高度
+    const H = Math.ceil(y+50);
+    const out = document.createElement('canvas');
+    out.width = W; out.height = H;
+    const ox = out.getContext('2d');
+    ox.drawImage(c,0,0);
+    const a = document.createElement('a');
+    a.download = '上司图鉴-'+type.name+'.png';
+    a.href = out.toDataURL('image/png');
+    document.body.appendChild(a); a.click(); a.remove();
+    flash(btn,'已保存');
+  }catch(e){ bad(); }
+}
+
+function renderIntro(){
+  setCode("SX-0000");
+  setBand("");
+  renderFoot("intro");
+  document.getElementById('main').innerHTML =
+    '<div class="intro">'+
+      '<div class="intro-l">'+
+        '<p class="kicker">职场生存工具 · 十题鉴定</p>'+
+        '<h1>上司图鉴</h1>'+
+        '<p class="lede">你已经忍他很久了。十道题，给他的管理方式出一份鉴定报告，顺带算算你一年要为他多花多少个工作日。</p>'+
+        '<div class="chips"><span>10 道情境题</span><span>4 维行为轴</span><span>8 种原型</span><span>血压指数</span></div>'+
+        '<button class="btn" id="startBtn">开始鉴定</button>'+
+        '<p class="fine">趣味自评，非标准化心理量表，未做信效度检验，不替代任何职业或心理建议。</p>'+
+        '<div class="dexwrap">'+
+          '<div class="dl"><span>原型图鉴 · 换着选项多测几次可解锁</span><span id="dexCount">已解锁 0 / 8</span></div>'+
+          '<div class="dex" id="dex"></div>'+
+        '</div>'+
+      '</div>'+
+      '<aside class="intro-r">'+
+        '<p class="irl">最终报告长这样 · 可直接截图发群</p>'+
+        '<div class="mini-card">'+
+          '<span class="mc-chip">上级鉴定报告</span>'+
+          '<h4 class="mc-name">火山型</h4>'+
+          '<p class="mc-roast">「他的情绪是活火山，你练的是疏散，不是预测。」</p>'+
+          '<div class="mc-bp"><b>75</b><span>红灯 · 该算止损了</span></div>'+
+          '<div class="mc-bar"><i></i></div>'+
+          '<p class="mc-st">每周 8.3 小时 · 一年折合 50 个工作日</p>'+
+          '<div class="mc-axes">'+
+            '<div class="mc-axis"><span>控制倾向</span><u><b style="width:82%"></b></u><em>82</em></div>'+
+            '<div class="mc-axis"><span>担当指数</span><u><b style="width:31%"></b></u><em>31</em></div>'+
+            '<div class="mc-axis"><span>情绪平稳</span><u><b style="width:24%"></b></u><em>24</em></div>'+
+            '<div class="mc-axis"><span>决断速度</span><u><b style="width:68%"></b></u><em>68</em></div>'+
+          '</div>'+
+          '<p class="mc-say"><b>他说：</b>「这么点事都做不好？」<br><b>你回：</b>「具体哪儿不行，您指一下，我改。」</p>'+
+        '</div>'+
+      '</aside>'+
+    '</div>';
+  renderDex();
+  document.getElementById('startBtn').onclick = () => { state.screen="quiz"; state.qi=0; render(); };
+  fitAfter();
+}
+
+/* ===================== 图鉴（本地收集，零上传） ===================== */
+const DEX_KEY = 'sxmap_dex_v1';
+function loadDex(){ try{ return JSON.parse(localStorage.getItem(DEX_KEY)||'[]'); }catch(e){ return []; } }
+function saveDex(k){ try{ const a=loadDex(); if(a.indexOf(k)<0){ a.push(k); localStorage.setItem(DEX_KEY,JSON.stringify(a)); } }catch(e){} }
+function renderDex(){
+  const box=document.getElementById('dex'); if(!box) return;
+  const unlocked=loadDex();
+  let h='';
+  TYPES.forEach(t=>{
+    const on=unlocked.indexOf(t.key)>=0;
+    h += '<span class="'+(on?'on':'')+'">'+(on?esc(t.name):'？')+'</span>';
+  });
+  box.innerHTML=h;
+  const c=document.getElementById('dexCount');
+  if(c) c.textContent='已解锁 '+unlocked.length+' / '+TYPES.length;
+}
+
+function renderQuiz(){
+  const i = state.qi;
+  const Q = QUESTIONS[i];
+  setCode("SX-"+(1000+i)+"/"+QUESTIONS.length);
+  setBand("");
+  renderFoot("quiz");
+  renderDex();
+  const pct = Math.round((i)/(QUESTIONS.length)*100);
+  let opts = '';
+  Q.opts.forEach((o,idx)=>{
+    const on = state.answers[i]===idx ? ' is-on':'';
+    opts += '<div class="opt'+on+'" data-v="'+idx+'"><span class="box"></span><span class="t">'+esc(o.t)+'</span></div>';
+  });
+  const m = document.getElementById('main');
+  m.innerHTML =
+    '<div class="qwrap">'+
+      '<div class="qtop"><span class="qno">情境 '+(i+1)+' / '+QUESTIONS.length+'</span><span class="qpct">'+pct+'%</span></div>'+
+      '<div class="prog"><i style="width:'+pct+'%"></i></div>'+
+      '<h2 class="qtitle">'+esc(Q.q)+'</h2>'+
+      '<p class="qhint">'+esc(Q.hint)+'</p>'+
+      '<div class="opts">'+opts+'</div>'+
+      '<div class="nav">'+
+        (i>0?'<button class="btn btn-ghost" id="backBtn">上一题</button>':'<span></span>')+
+        '<span style="font-size:12px;color:var(--ink-3)">点选即自动进入下一题</span>'+
+      '</div>'+
+    '</div>';
+  m.querySelectorAll('.opt').forEach(el=>{
+    el.onclick = () => {
+      const v = parseInt(el.getAttribute('data-v'),10);
+      state.answers[i] = v;
+      m.querySelectorAll('.opt').forEach(x=>x.classList.remove('is-on'));
+      el.classList.add('is-on');
+      setTimeout(()=>{
+        if(i===QUESTIONS.length-1){ state.screen="name"; render(); }
+        else { state.qi++; render(); }
+      }, 240);
+    };
+  });
+  if(i>0) document.getElementById('backBtn').onclick = () => { state.qi--; render(); };
+  fitAfter();
+}
+
+/* 第 10 题之后的独立窗口：给上级起名 */
+function renderName(){
+  setCode("SX-"+QUESTIONS.length+"/"+QUESTIONS.length);
+  setBand("");
+  renderFoot("name");
+  if(!state.boss) state.boss = loadBoss();
+  document.getElementById('main').innerHTML =
+    '<div class="namewrap">'+
+      '<p class="nlede">写下你老板的姓名，反正他也不知道。</p>'+
+      '<input id="bossInputName" class="ninput" maxlength="12" placeholder="王总 / 张总监 / 隔壁老王" value="'+esc(state.boss.trim())+'">'+
+      '<div class="nicks nnicks" id="nicksName">'+nicksButtons()+'</div>'+
+      '<div class="nact">'+
+        '<button class="btn" id="genBtn">生成鉴定报告</button>'+
+        '<button class="nskip" id="skipBtn" type="button">先不填，直接看报告</button>'+
+      '</div>'+
+    '</div>';
+  const inp = document.getElementById('bossInputName');
+  const paint = () => {
+    document.querySelectorAll('#nicksName button').forEach(x=>x.classList.toggle('on',(x.getAttribute('data-n')||'')===inp.value.trim()));
+  };
+  paint();
+  inp.oninput = () => { state.boss = inp.value; paint(); };
+  document.querySelectorAll('#nicksName button').forEach(b=>{
+    b.onclick = () => { state.boss = b.getAttribute('data-n')||''; inp.value = state.boss; paint(); try{inp.focus();}catch(e){} };
+  });
+  const go = () => {
+    state.boss = (inp.value||'').trim();
+    saveBoss(state.boss);
+    state.screen="result"; writeHash(); render();
+  };
+  document.getElementById('genBtn').onclick = go;
+  document.getElementById('skipBtn').onclick = () => { state.boss=''; saveBoss(''); state.screen="result"; writeHash(); render(); };
+  inp.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); go(); } });
+  fitAfter();
+  setTimeout(()=>{ try{ inp.focus({preventScroll:true}); }catch(e){ try{ inp.focus(); }catch(_e){} } }, 60);
+}
+
+function computeScores(){
+  const s = {A:0,R:0,E:0,D:0};
+  state.answers.forEach((a,qi)=>{
+    if(a===null) return;
+    const w = QUESTIONS[qi].opts[a].w;
+    s.A+=w[0]; s.R+=w[1]; s.E+=w[2]; s.D+=w[3];
+  });
+  AXES.forEach(ax=>{ s[ax.k] = Math.round(Math.min(100, s[ax.k]/MAX[ax.k]*100)); });
+  return s;
+}
+
+function classify(s){
+  const {A,R,E,D}=s;
+  const T=k=>TYPES.find(t=>t.key===k);
+  if(E<=50 && (A>=55 || D>=55)) return T('volcano');
+  if(R<=28 && A<58) return T('passer');
+  if(A<=40 && D<=35 && R<=45) return T('ghost');
+  if(D<=35 && R<=45 && E>=55) return T('chameleon');
+  if(D<=35 && A<=55 && R>=30) return T('promiser');
+  if(R<=45 && A>=55 && D>=45 && E>=55) return T('harvester');
+  if(A>=65 && R>=40 && D<60 && E>=55) return T('microscope');
+  if(A>=60 && R>=60 && D>=60) return T('ironhand');
+  let best=null,bd=Infinity;
+  TYPES.forEach(t=>{const d=Math.pow(A-t.c[0],2)+Math.pow(R-t.c[1],2)+Math.pow(E-t.c[2],2)+Math.pow(D-t.c[3],2); if(d<bd){bd=d;best=t;}});
+  return best;
+}
+
+function renderResult(){
+  const s = computeScores();
+  const type = classify(s);
+  const d = dangerScore(s);
+  const dv = Math.round(d);
+  const tier = d>=64 ? TIERS.high : (d>=34 ? TIERS.mid : TIERS.low);
+  const hoursWeek = Math.round((d/100*11)*10)/10;
+  const daysYear = Math.round(hoursWeek*48/8);
+  saveDex(type.key);
+  setCode("SX-"+String(dv).padStart(4,'0'));
+  setBand(tier.cls);
+  renderFoot("result");
+  if(!state.boss) state.boss = loadBoss();
+
+  let axes = '';
+  AXES.forEach(ax=>{
+    const v = s[ax.k];
+    let tone;
+    if(ax.k==='A'){ tone = v>=65 ? 'bad' : (v>=40 ? 'warn' : 'good'); }
+    else { tone = v>=60 ? 'good' : (v>=35 ? 'warn' : 'bad'); }
+    axes += '<div class="axis"><span class="lab">'+ax.name+'</span>'+
+      '<span class="track"><span class="fill '+tone+'" style="width:'+v+'%"></span></span>'+
+      '<span class="val '+tone+'">'+v+'</span></div>';
+  });
+  let tips = '';
+  type.tips.slice(0,2).forEach(t=>{ tips += '<li>'+esc(t)+'</li>'; });
+  tier.kit.slice(0,2).forEach(k=>{ tips += '<li>'+esc(k)+'</li>'; });
+  let vent = '';
+  type.vent.forEach(v=>{ vent += '<li data-t="'+esc(v)+'"><span>'+esc(v)+'</span><span class="cp">点一下复制</span></li>'; });
+
+  document.getElementById('main').innerHTML =
+    '<div class="r-wrap">'+
+      '<div class="concl '+tier.cls+'"><span>'+esc(tier.conclusion)+'</span><span class="tagline">'+esc(tier.sub)+'</span></div>'+
+      '<section class="r-hero">'+
+        '<div class="r-hero-l">'+
+          '<span class="chip '+tier.cls+'">上级鉴定报告</span>'+
+          '<p class="objlbl">鉴定对象</p>'+
+          '<h2 class="bossname'+(state.boss.trim()?'':' none')+'" data-bossname>'+(state.boss.trim()?esc(state.boss.trim()):'你的上级')+'</h2>'+
+          '<div class="typerow"><span class="tname">'+esc(type.name)+'</span><span class="ttag">'+esc(type.tag)+'</span></div>'+
+          '<p class="roast">「'+esc(type.roast)+'」</p>'+
+        '</div>'+
+        '<div class="r-hero-r">'+
+          '<div class="bp"><span class="bp-num '+tier.cls+'">'+dv+'<span>/100</span></span><span class="lv '+tier.cls+'">'+tier.label+'</span></div>'+
+          '<div class="dbar"><i class="'+tier.cls+'" style="width:'+dv+'%"></i></div>'+
+          '<div class="stats">'+
+            '<div><b>'+hoursWeek+'<i>小时</i></b><span>每周为他额外消耗</span></div>'+
+            '<div><b>'+daysYear+'<i>天</i></b><span>一年折合的工作日</span></div>'+
+          '</div>'+
+        '</div>'+
+      '</section>'+
+      '<section class="r-mid">'+
+        '<div class="r-mid-l">'+
+          '<p class="rdesc">'+esc(type.desc)+'</p>'+
+          '<h3 class="sec">四维行为轴 <em>控制倾向越高越压人；其余三项越高越好</em></h3>'+
+          axes+
+        '</div>'+
+        '<div class="r-mid-r">'+
+          '<h3 class="sec">他说 · 你回</h3>'+
+          '<p class="saylbl">他嘴里最常出现的那句</p>'+
+          '<p class="say">「'+esc(type.say)+'」</p>'+
+          '<p class="saylbl">你心里其实想回的那句</p>'+
+          '<p class="inner">「'+esc(type.inner)+'」</p>'+
+          '<p class="saylbl">下次见面，可以这么说</p>'+
+          '<p class="line">'+esc(type.line)+'</p>'+
+          '<div class="copyrow"><button class="mini" id="copyLine">复制这句</button></div>'+
+        '</div>'+
+      '</section>'+
+      '<section class="r-low">'+
+        '<div class="r-low-l">'+
+          '<h3 class="sec">你已经忍了很久了 <em>点一下复制，发群里</em></h3>'+
+          '<ul class="vent">'+vent+'</ul>'+
+          '<p class="verdict">'+esc(tier.verdict)+'</p>'+
+          '<p class="future"><b>三年推演 · </b>'+esc(type.future)+'</p>'+
+        '</div>'+
+        '<div class="r-low-r">'+
+          '<h3 class="sec">保命清单 <em>性格两条 · 档位两条</em></h3>'+
+          '<ul class="tip">'+tips+'</ul>'+
+        '</div>'+
+      '</section>'+
+    '</div>';
+
+  const m = document.getElementById('main');
+  fitAfter();
+  document.getElementById('copyLine').onclick = (e) => copy(type.line, e.currentTarget);
+  m.querySelectorAll('.vent li').forEach(li=>{
+    li.onclick = () => copy(li.getAttribute('data-t'), li.querySelector('.cp'));
+  });
+
+  function copy(text, btn){
+    const done = () => flash(btn,'已复制');
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(done);
+    else done();
+  }
+}
+
+/* ===================== 分享：选项编码进 URL hash ===================== */
+function writeHash(){
+  const code = state.answers.map(a=>a===null?0:a).join('');
+  try{ location.hash = 'r=' + btoa(code); }catch(e){ location.hash = 'r=' + code; }
+}
+function readHash(){
+  const h = location.hash || '';
+  const m = h.match(/r=([0-9A-Za-z+/=]+)/);
+  if(!m) return false;
+  let code;
+  try{ code = atob(m[1]); }catch(e){ code = m[1]; }
+  if(code.length !== QUESTIONS.length) return false;
+  const arr = code.split('').map(c=>parseInt(c,10));
+  for(let i=0;i<arr.length;i++){ if(isNaN(arr[i])||arr[i]<0||arr[i]>=QUESTIONS[i].opts.length) return false; }
+  state.answers = arr;
+  state.screen = "result";
+  return true;
+}
+
+function render(){
+  if(state.screen==="intro") renderIntro();
+  else if(state.screen==="quiz") renderQuiz();
+  else if(state.screen==="name") renderName();
+  else renderResult();
+}
+
+/* 键盘：1-4 选项，← 上一题 */
+document.addEventListener('keydown',(e)=>{
+  if(state.screen!=="quiz") return;
+  const i = state.qi;
+  if(e.key==="ArrowLeft"){ if(i>0){ state.qi--; render(); } return; }
+  const n = parseInt(e.key,10);
+  if(n>=1 && n<=QUESTIONS[i].opts.length){
+    const el = document.querySelectorAll('#main .opt')[n-1];
+    if(el) el.click();
+  }
+});
+
+if(readHash()){ render(); }
+else { render(); }
+</script>
+</body>
+</html>
