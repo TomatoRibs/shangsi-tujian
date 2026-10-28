@@ -4,7 +4,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE) [![Single File HTML](https://img.shields.io/badge/Single--File-HTML-orange.svg)](./assets/shangsi-tujian.html) [![WorkBuddy Skill](https://img.shields.io/badge/WorkBuddy-Skill-purple.svg)](./SKILL.md)
 
-**🔗 [在线体验 →](https://tomatoribs.github.io/shangsi-tujian/)**（点开就玩 · 免安装 · 免注册）
+**这是一个 WorkBuddy 技能**——下载装好后，一句话就能生成或重做这一份。只想先看看效果，也可以只打开网页版。
 
 ![上司图鉴首屏](./assets/preview.png)
 
@@ -13,6 +13,28 @@
 总有些管理方式，你明明被消耗了，却拿不出任何证据。10 道情境题，给他的管理方式出一份鉴定报告，顺带算算你一年要为他多花多少个工作日。
 
 **10 道情境题 · 4 维行为轴 · 8 种原型 · 血压指数 · 0 上传**
+
+## 怎么装
+
+**方式一：装成 WorkBuddy 技能（推荐）**
+
+下载本仓库（右上角 `Code → Download ZIP`，或用 git），然后在解压出来的目录里执行：
+
+```bash
+git clone https://github.com/TomatoRibs/shangsi-tujian.git
+cd shangsi-tujian
+bash scripts/install_local.sh
+```
+
+装好后技能进入 `~/.workbuddy/skills/shangsi-tujian/`，回到 WorkBuddy 直接说话即可。
+
+WorkBuddy 是一个本地 AI 助手；装成技能后，一句话触发：「做一个能鉴定 8 种老板原型、能算出一年搭进去多少工作日的网页」。
+
+**方式二：只想打开网页版**
+
+1. 双击 `assets/shangsi-tujian.html`（无需联网、无需服务器，手机可直接打开）。
+2. 点选 10 道情境题，每题点完自动进入下一题。
+3. 第十题后可给上级起个名（可跳过），生成报告，截图或链接分享。
 
 ## 你会测出什么
 
@@ -60,12 +82,6 @@
 └──────────────────────────────────────────────┘
 ```
 
-## 怎么用
-
-1. 双击 `assets/shangsi-tujian.html`（无需联网、无需服务器，手机可直接打开）。
-2. 点选 10 道情境题，每题点完自动进入下一题。
-3. 第十题后可给上级起个名（可跳过），生成报告，截图或链接分享。
-
 ## 隐私
 
 全部计算在浏览器本地完成，零上传。上级姓名只存在你本机的 `localStorage`，关掉页面还在，清掉浏览器数据即消失。分享链接只会还原你选的答案——**转发链接等同于公开你的答案**，发给谁，请确认后再定。
@@ -95,14 +111,6 @@
 ## 为什么做这个
 
 它的用处只有一个：把「我是不是太敏感了」换成一张写满数字的纸。
-
-## 装成 WorkBuddy 技能（可选）
-
-```bash
-bash scripts/install_local.sh .
-```
-
-WorkBuddy 是一个本地 AI 助手；装成技能后，一句话触发：「做一个能鉴定 8 种老板原型、能算出一年搭进去多少工作日的网页」。
 
 ## 免责声明
 
