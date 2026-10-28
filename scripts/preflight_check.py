@@ -15,6 +15,8 @@
        —— 市场解析失败最常见的原因是"未加引号的值里出现冒号+空格"，
           例如 `description_en: a toy: pick ...`，YAML 会把 `pick` 当成新键，
           整包报 `mapping values are not allowed in this context`，链接口都进不去。
+       —— 字段既允许写在顶层，也允许写在 `metadata:` 块内；校验前会先把顶层
+          metadata 展平到一层再查完整性（顶层优先），两种写法一视同仁。
     3. 命名：SKILL.md 的 name 必须是 ASCII kebab-case
        （^[a-z0-9]+(-[a-z0-9]+)*$）。GitHub 仓库名与 WorkBuddy 市场标识名共用这一个值。
 
@@ -159,6 +161,7 @@ def fallback_scan(fm):
     """
     problems = []
     seen = {}
+    nested_seen = {}          # metadata: 块内的键，供 flatten 后查字段用
     block_scalar = False
     nested_ok = False
     for i, line in enumerate(fm.splitlines(), 1):
@@ -173,6 +176,9 @@ def fallback_scan(fm):
 
         if indent > 0:
             if nested_ok and (line.lstrip().startswith("-") or KEY_LINE.match(line.strip())):
+                m2 = KEY_LINE.match(line.strip())
+                if m2 and m2.group(1) not in nested_seen:
+                    nested_seen[m2.group(1)] = i
                 continue
             problems.append((i, "缩进错误：该行有缩进，但上一行不是块标量（>- / |）也不是空值键"))
             continue
@@ -212,9 +218,32 @@ def fallback_scan(fm):
             problems.append((i, "值以 YAML 保留字符 %r 开头，需要用引号包起来" % val[0]))
 
     for k in REQUIRED_KEYS:
-        if k not in seen:
-            problems.append((0, "缺少必需字段：%s" % k))
+        if k not in seen and k not in nested_seen:
+            problems.append((0, "缺少必需字段：%s（顶层与 metadata: 块内都没有）" % k))
     return problems
+
+
+def flatten_metadata(data):
+    """把顶层 `metadata:` 块展平到一层，供字段完整性校验使用。
+
+    市场目前同时接受两种写法：
+        display_name: 上司图鉴                 ← 顶层
+        metadata:
+          display_name: 上司图鉴               ← 嵌套
+    两者语义相同，校验时不该区别对待。顶层键优先（冲突时以顶层为准）。
+
+    注意：只影响"查字段"，不回写用户文件、不改变 name 的取值来源。
+    """
+    if not isinstance(data, dict):
+        return data
+    meta = data.get("metadata")
+    if not isinstance(meta, dict):
+        return data
+    flat = dict(meta)
+    for k, v in data.items():
+        if k != "metadata":
+            flat[k] = v
+    return flat
 
 
 def yaml_scan(fm):
@@ -234,6 +263,7 @@ def yaml_scan(fm):
         return [(0, "YAML 解析失败：%s" % detail)], "PyYAML", None
     if not isinstance(data, dict):
         return [(0, "frontmatter 解析结果不是键值对（mapping）")], "PyYAML", None
+    data = flatten_metadata(data)
     problems = []
     for k in REQUIRED_KEYS:
         if k not in data:
@@ -270,11 +300,12 @@ def check_frontmatter(path):
             if missing:
                 print("  WARN [字段] %s 建议补齐市场字段：%s" % (name, "、".join(missing)))
         else:
-            m = re.search(r"^name:[ \t]*(.+)$", fm, re.M)
+            m = re.search(r"^name:[ \t]*(.+)$", fm, re.M) or \
+                re.search(r"^[ \t]+name:[ \t]*(.+)$", fm, re.M)
             val = m.group(1).strip().strip("\"'") if m else ""
             if val and not KEBAB.match(val):
                 problems.append((name, 0, "name=%r 不合规，必须匹配 ^[a-z0-9]+(-[a-z0-9]+)*$" % val))
-            missing = [k for k in SUGGESTED_KEYS if not re.search(r"^%s:" % k, fm, re.M)]
+            missing = [k for k in SUGGESTED_KEYS if not re.search(r"^\s*%s:" % k, fm, re.M)]
             if missing:
                 print("  WARN [字段] %s 建议补齐市场字段：%s" % (name, "、".join(missing)))
     return problems, engines
